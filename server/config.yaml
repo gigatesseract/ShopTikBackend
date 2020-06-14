@@ -1,0 +1,22 @@
+
+DEFAULT:
+  GANACHE_URL : 'http://127.0.0.1:8545'
+  NETWORK_ID : 1592129918019
+  ABI_FILE_PATH : './blockchain/build/contracts'
+  ACCOUNT_KEYS_PATH : './blockchain/keys'
+  TOTAL_NODES : 10
+  ETH_PER_NODE : 100
+
+# These are allowed to transact
+SHOPKEEPER_IDS:
+  - 0
+  - 1
+
+# These are allowed only to only query
+CUSTOMER_IDS:
+  - 2
+  - 3
+
+#These can also transact, but have access to customer mappings.
+ADMIN_IDS:
+  - 4
