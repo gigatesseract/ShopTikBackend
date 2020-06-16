@@ -6,6 +6,7 @@ DEFAULT:
   ACCOUNT_KEYS_PATH : './blockchain/keys'
   TOTAL_NODES : 10
   ETH_PER_NODE : 100
+  MNEMONIC : 'master doll scare pilot clinic will police slim stove secret pink outside' 
 
 # These are allowed to transact
 SHOPKEEPER_IDS:
