@@ -1,17 +1,29 @@
 import mysql.connector as MySQLdb
 
 class DB:
-    def __init__(self):
-        self.host = 'sql12.freemysqlhosting.net'
-        self.user = 'sql12346965'
-        self.pswd = 'DPBKwKQ13x'
-        self.db = 'sql12346965'
+    def __init__(self, db_dict):
+        # db_dict = config_dict['DB']
+        self.host = db_dict['HOST']
+        self.user = db_dict['USER']
+        self.pswd = db_dict['PASSWORD']
+        self.db = db_dict['DB']
         self.conn =	None
         self.cur = None
 
     def db_connect(self):
         self.conn = MySQLdb.connect(user=self.user, password=self.pswd,host=self.host,database=self.db)
         self.cur = self.conn.cursor()
+
+
+    def get_all_ids(self):
+        self.db_connect()
+        query = "select `id` from shop where 1"
+        self.cur.execute(query)
+        unique_ids = self.cur.fetchall()
+        query = "select `id` from admin where 1"
+        self.cur.execute(query)
+        unique_ids += self.cur.fetchall()
+        return unique_ids
 
     def add_user(self,id,name,email,address,phone,pwd):
             self.db_connect()

@@ -12,13 +12,17 @@ def get_network_id(build_json_path):
     
 
 
-def initialise_all_nodes(config_dict):
+def initialise_all_nodes(config_dict, alloted_ids):
     from .node import Node
     nodes = {
-        'shop_keepers':{},
-        'customers':{},
-        'admin':{}
+        "alloted_ids": [],
+        "free_ids": [],
+        "addresses": {}
     }
+    for id in alloted_ids:
+        actual_id = id[0]
+        nodes['alloted_ids'].append(actual_id)
+    
     keys_file_path = config_dict['DEFAULT']['ACCOUNT_KEYS_PATH']
     abi_path = config_dict['DEFAULT']['ABI_FILE_PATH']
     network_id = config_dict['DEFAULT']['NETWORK_ID']
@@ -33,18 +37,22 @@ def initialise_all_nodes(config_dict):
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
     print("contact deployed. This is the details----\n")
     pp(tx_receipt)
-    for id in config_dict['SHOPKEEPER_IDS']:
-        nodes['shop_keepers'][pub_priv_keys[id]['address']] = Node(pub_priv_keys[id],abi_path,tx_receipt.contractAddress,network_id, config_dict['DEFAULT']['GANACHE_URL'], True)
+    for id in nodes['alloted_ids']:
+        nodes['addresses'][pub_priv_keys[id]['address']] = Node(pub_priv_keys[id],abi_path,tx_receipt.contractAddress,network_id, config_dict['DEFAULT']['GANACHE_URL'], True)
 
-    for id in config_dict['CUSTOMER_IDS']:
-        nodes['customers'][pub_priv_keys[id]['address']] = Node(pub_priv_keys[id],abi_path,tx_receipt.contractAddress,network_id, config_dict['DEFAULT']['GANACHE_URL'], False)
-
-    for id in config_dict['ADMIN_IDS']:
-        nodes['admin'][pub_priv_keys[id]['address']] = Node(pub_priv_keys[id],abi_path,tx_receipt.contractAddress,network_id, config_dict['DEFAULT']['GANACHE_URL'], True)
-
-    return nodes, pub_priv_keys
+    for address in pub_priv_keys:
+        if address not in nodes['alloted_ids']:
+            nodes['free_ids'].append(address)
+    return nodes
 
 
+def get_unique_id(nodes):
+    if len(nodes['free_ids']) == 0:
+        return (None, nodes)
+    else:
+        last = nodes['free_ids'].pop()
+        nodes['alloted_ids'].append(last)
+        return (last, nodes)
 
 
 def read_config(path):
@@ -69,7 +77,7 @@ def convert_buf_to_hex(buffer):
 
 def get_pub_priv_keys(keys_json):
     accounts_details = {}
-    counter = 0
+    address = ''
     accounts = keys_json['addresses']
     for account in accounts.keys():
         # accounts_details[counter] = {}
@@ -78,12 +86,14 @@ def get_pub_priv_keys(keys_json):
             'public_key': '',
             'private_key': ''
         }
+        address = Web3.toChecksumAddress(account)
+        
         account_info['public_key'] = convert_buf_to_hex(accounts[account]['publicKey']['data'])
         account_info['private_key'] = convert_buf_to_hex(accounts[account]['secretKey']['data'])
-        accounts_details[counter] = account_info
-        counter+=1
+        accounts_details[address] = account_info
+        # counter+=1
 
-    return accounts_details        
+    return accounts_details
 
 if __name__ == '__main__':
     network_id = get_network_id(sys.argv[1])
