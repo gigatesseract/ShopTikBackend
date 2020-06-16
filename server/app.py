@@ -81,7 +81,7 @@ def add_user_data():
 #TEST SERVER
 @app.route('/')
 def apiCall():
-		return jsonify({'success':True , 'message':'BASE URL'  })
+	return jsonify({'success':True , 'message':'BASE URL'  })
 
 
 #HELPER FUNCTIONS
@@ -94,11 +94,11 @@ def getUserId():
 		return ele
 #blockchain call for shop Address
 def getShopId():
-		#TODO: ALLOT UNIQUE ID
-		global nodes
-		(ele, nodes) = u.get_unique_id(nodes)
-		return ele
-		#insert web3 here
+	#TODO: ALLOT UNIQUE ID
+	global nodes
+	(ele, nodes) = u.get_unique_id(nodes)
+	return ele
+	#insert web3 here
 	 
 #generate QR CODE IMAGE
 def generateQRImage(qrCode,mailId):
@@ -156,20 +156,20 @@ def generateQRImage(qrCode,mailId):
 
 @app.route('/api/track', methods=['POST'])
 def track_users():
-		info =request.json
-		admin_id = info['admin_id']
-		customer_id = info['customer_id']
-		[ids, shop_ids, slot_begins] = nodes[admin_id].get_all_user_data(customer_id)
-		track_info = []
-		for i in range(len(ids)):
-			if shop_ids[i]!='':
-				track_info.append({
-					"id": ids[i],
-					"shop_id": shop_ids[i],
-					"slot_begin": datetime.datetime.fromtimestamp(slot_begins[i]).isoformat(),
-				})
-		pp(track_info)
-		return jsonify(track_info)
+	info =request.json
+	admin_id = info['admin_id']
+	customer_id = info['customer_id']
+	[ids, shop_ids, slot_begins] = nodes[admin_id].get_all_user_data(customer_id)
+	track_info = []
+	for i in range(len(ids)):
+		if shop_ids[i]!='':
+			track_info.append({
+				"id": ids[i],
+				"shop_id": shop_ids[i],
+				"slot_begin": datetime.datetime.fromtimestamp(slot_begins[i]).isoformat(),
+			})
+	pp(track_info)
+	return jsonify(track_info)
 
 
 #Register User API
@@ -215,64 +215,64 @@ def user_register():
 # }
 @app.route('/api/shop/register',methods = ['POST'])
 def shop_register():
-		info = request.json
-		print(info)
-		name = info['name']
-		lat = info['lat']
-		lon = info['lon']
-		email = info['email']
-		address = info['address']
-		phone = info['phone']
-		pwd = info['pwd']
-		id_shop = getShopId()
-		hold = info['hold']
-		if data.check_shop_name(email) == True:
-				return jsonify({'message':'Email already exists' , 'success':False})
+	info = request.json
+	print(info)
+	name = info['name']
+	lat = info['lat']
+	lon = info['lon']
+	email = info['email']
+	address = info['address']
+	phone = info['phone']
+	pwd = info['pwd']
+	id_shop = getShopId()
+	hold = info['hold']
+	if data.check_shop_name(email) == True:
+			return jsonify({'message':'Email already exists' , 'success':False})
 
-		data.add_shop(id_shop,name,lat,lon,email,address,phone,pwd,hold)
-		return jsonify({'success':True , 'message':'Shop successfully registered' })
+	data.add_shop(id_shop,name,lat,lon,email,address,phone,pwd,hold)
+	return jsonify({'success':True , 'message':'Shop successfully registered' })
 
 #LOGIN API
 
 #ADMIN LOGIN get method /api/admin/login/admin@shoptikmail.com/admin@123
 @app.route('/api/admin/login/<email>/<pwd>')
 def admin_login(email,pwd) :
-		print(email,pwd)
-		if(email == "admin@shoptikmail.com") :
-				if(pwd == "admin@123"):
-						return jsonify({'success' : True, 'message' : 'Admin Logged IN'})
-				else:
-						return jsonify({'success' : False, 'message' : 'Admin Not Logged IN'})
-		else:
-				return jsonify({'success' : False, 'message' : 'Admin Not Logged IN'})
+	print(email,pwd)
+	if(email == "admin@shoptikmail.com") :
+			if(pwd == "admin@123"):
+					return jsonify({'success' : True, 'message' : 'Admin Logged IN'})
+			else:
+					return jsonify({'success' : False, 'message' : 'Admin Not Logged IN'})
+	else:
+			return jsonify({'success' : False, 'message' : 'Admin Not Logged IN'})
 
 
 #USER LOGIN /api/user/login/jansri7@gmail.com/jay123vishaal
 @app.route('/api/user/login/<email>/<pwd>',methods = ['GET'])
 def user_login(email,pwd):
-		if data.check_user_name(email) == False:
-				return jsonify({'message':'Email does not exist' , 'success':False})
-		user_data = data.get_user_pwd(email)
-		print(user_data)
-		if user_data[0][0] == pwd:
-				return jsonify({'message':'Customer login success' , 'success':True, 'id': user_data[0][1]})
+	if data.check_user_name(email) == False:
+			return jsonify({'message':'Email does not exist' , 'success':False})
+	user_data = data.get_user_pwd(email)
+	print(user_data)
+	if user_data[0][0] == pwd:
+			return jsonify({'message':'Customer login success' , 'success':True, 'id': user_data[0][1]})
 
-		else:
-				return jsonify({'message':'Incorrect User password ' , 'success':False})
+	else:
+			return jsonify({'message':'Incorrect User password ' , 'success':False})
 
 #SHOP LOGIN  /api/shop/login/arnold@outlook.com/XTPwmHaZ
 @app.route('/api/shop/login/<email>/<pwd>',methods = ['GET'])
 def shop_login(email,pwd):
-		print(email,pwd)
-		if data.check_shop_name(email) == False:
-				return jsonify({'message':'Email does not exist' , 'success':False})
-		shop_data= data.get_shop_pwd(email)
-		print(shop_data)
-		if shop_data[0][0] == pwd:
-				return jsonify({'message':'Shop login success' , 'success':True , 'id':shop_data[0][1]})
+	print(email,pwd)
+	if data.check_shop_name(email) == False:
+			return jsonify({'message':'Email does not exist' , 'success':False})
+	shop_data= data.get_shop_pwd(email)
+	print(shop_data)
+	if shop_data[0][0] == pwd:
+			return jsonify({'message':'Shop login success' , 'success':True , 'id':shop_data[0][1]})
 
-		else:
-				return jsonify({'message':'Incorrect Shop password ' , 'success':False})
+	else:
+			return jsonify({'message':'Incorrect Shop password ' , 'success':False})
 
 
 #SHOP API's
@@ -284,34 +284,34 @@ def shop_login(email,pwd):
 # }
 @app.route('/api/shop/stock/insert',methods = ['POST'])
 def stock_insert():
-		info = request.json 
-		product = info['product']
-		shop_id = info['shop_id']
-		product_id = info['product_id']
-		stat = data.insert_stock(product,shop_id,product_id)
-		if stat==True:
-			return jsonify({'success':True , 'message':'Stock successfully updated' })
-		else:
-			return jsonify({'success':False , 'message':'Stock already exists' })
+	info = request.json 
+	product = info['product']
+	shop_id = info['shop_id']
+	product_id = info['product_id']
+	stat = data.insert_stock(product,shop_id,product_id)
+	if stat==True:
+		return jsonify({'success':True , 'message':'Stock successfully updated' })
+	else:
+		return jsonify({'success':False , 'message':'Stock already exists' })
 
 
 #DELETE STOCK
 @app.route('/api/shop/stock/delete/<shopId>/<productId>',methods = ['GET'])
 def stock_delete(shopId,productId):
-		print(shopId,productId)
-		stat = data.delete_stock(shopId,productId)
-		if stat==True:
-			return jsonify({'success':True , 'message':'Stock successfully deleted' })
-		else:
-			return jsonify({'success':False , 'message':'Stock does not exist' })
+	print(shopId,productId)
+	stat = data.delete_stock(shopId,productId)
+	if stat==True:
+		return jsonify({'success':True , 'message':'Stock successfully deleted' })
+	else:
+		return jsonify({'success':False , 'message':'Stock does not exist' })
 
 
 #GET STOCK
 @app.route('/api/shop/products/<shopId>')
 def get_products_of_shop(shopId):
-		response = data.get_products_of_shop(shopId)
-		print(response)
-		return jsonify(response)
+	response = data.get_products_of_shop(shopId)
+	print(response)
+	return jsonify(response)
 
 #GET DETAILS OF SHOP
 @app.route('/api/shop/details/<shopId>')
@@ -324,10 +324,10 @@ def get_shop_details(shopId):
 #API FOR SLOTS NUMBER api/shop/tokens/booked/2020-07-12/ChIJKRiIHAdkUjoRTKyswz_T8Mk
 @app.route('/api/shop/tokens/booked/<date>/<shopId>', methods= ['GET'])
 def get_stock_list(shopId,date):
-		print(shopId)
-		res = data.slot_crowding_for_display(date,shopId)
-		print(res)
-		return jsonify(res)
+	print(shopId)
+	res = data.slot_crowding_for_display(date,shopId)
+	print(res)
+	return jsonify(res)
 
 
 
@@ -335,9 +335,9 @@ def get_stock_list(shopId,date):
 # API TO GET SHOPS NEARME
 @app.route('/api/shop/nearme',methods=['GET'])
 def shops_nearme():
-		shops=data.get_all_details_of_all_shops()
-		print(shops)
-		return jsonify(shops)
+	shops=data.get_all_details_of_all_shops()
+	print(shops)
+	return jsonify(shops)
 
 #API FOR BOOKING TICKET 
 # {
@@ -347,25 +347,34 @@ def shops_nearme():
 # }
 @app.route('/api/book/token', methods=['POST'])
 def book_ticket():
-		info = request.json
-		print(info)
-		cust_id = info['custId']
-		shop_id = info['shopId']
-		slot = info['slot']
-		qr = cust_id+shop_id+slot
-		stat = data.insert_token_transaction(cust_id,shop_id,slot,qr)
-		mailId = data.get_user_mail_id(cust_id)
-		#insert qr to image conversion code and mailing code
-		if stat == True:
-				stat1 = generateQRImage(qr,mailId)
-				if stat1 == True:
-						return jsonify({'success':True , 'qr':qr })
-				else:
-						return jsonify({'success':False,'message':"Ticket Booked Mail Failed Pls copy this image on Screen" })
-		else:
-				return jsonify({'success':False , 'qr': None })
+	info = request.json
+	print(info)
+	cust_id = info['custId']
+	shop_id = info['shopId']
+	slot = info['slot']
+	qr = cust_id+shop_id+slot
+	stat = data.insert_token_transaction(cust_id,shop_id,slot,qr)
+	mailId = data.get_user_mail_id(cust_id)
+	#insert qr to image conversion code and mailing code
+	if stat == True:
+			stat1 = generateQRImage(qr,mailId)
+			if stat1 == True:
+					return jsonify({'success':True , 'qr':qr })
+			else:
+					return jsonify({'success':False,'message':"Ticket Booked Mail Failed Pls copy this image on Screen" })
+	else:
+			return jsonify({'success':False , 'qr': None })
 
 @app.route('/api/user/tokens/<userId>')
 def get_user_booked_tokens(userId):
-		response = data.get_user_tokens(userId)
-		return jsonify(response)
+	response = data.get_user_tokens(userId)
+	return jsonify(response)
+
+@app.route('/api/tokens/verify/<tokenId>')
+def verify_token(tokenId):
+	response = data.get_token_verified(tokenId)
+	if response == None:
+		return jsonify({"allow":False,"message":"Not a valid Token"})
+	else:
+		print(response)
+		#insert block adding code here

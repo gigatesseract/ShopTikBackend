@@ -189,4 +189,14 @@ class DB:
             responses.append({"shopId":i[0],"name":shopDetails[0],"email":shopDetails[1],"hold_limit":shopDetails[4],"shop_address":shopDetails[2],"image":shopDetails[5],"slot":i[1],"qr":i[2]})
             print("RES",responses)
         return responses
+
+    def get_token_verified(self,tokenId):
+        self.db_connect()
+        query= "select customer_id,shop_id from transactions where QR ='{0}'".format(tokenId)
+        self.cur.execute(query)
+        response = self.cur.fetchall()
+        if len(response) > 0 :
+            return response[0]
+        else:
+            return None
         
