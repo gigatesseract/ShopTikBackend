@@ -4,6 +4,14 @@ from flask_cors import CORS
 from pprint import pprint as pp
 import time
 import datetime
+import smtplib
+import pyqrcode
+import png
+import os
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase 
+from email import encoders
 from database_func import DB
 
 app= Flask(__name__)
@@ -17,8 +25,8 @@ CONFIG_FILE = 'config.yaml'
 app = Flask(__name__, static_folder='../build')
 CORS(app)
 # alloted_ids = []
+path = os.getcwd()
 config_dict = u.read_config(CONFIG_FILE)
-# CORS(app)
 data = DB(config_dict['DB'])
 alloted_ids = data.get_all_ids()
 nodes = u.initialise_all_nodes(config_dict, alloted_ids)
@@ -70,13 +78,6 @@ def add_user_data():
 
 
 
-
-
-
-
-
-
-
 #TEST SERVER
 @app.route('/')
 def apiCall():
@@ -101,10 +102,39 @@ def getShopId():
 	 
 #generate QR CODE IMAGE
 def generateQRImage(qrCode,mailId):
-		# print(qrCode)
-		#TODO: put qr image gen fucntion here
-		#put send mail here
-		return True
+	path = os.getcwd()
+	print(qrCode,path)
+	url = pyqrcode.create(qrCode)
+	imageName = qrCode+'.png'
+	url.png(imageName,scale=8)
+	mail_content = '''Hey ,This is Your token for shop entry.'''
+	#The mail addresses and password
+	sender_address = 'shoptikmail@gmail.com'
+	sender_pass = 'shoptikpw'
+	receiver_address = mailId
+	#Setup the MIME
+	message = MIMEMultipart()
+	message['From'] = sender_address
+	message['To'] = receiver_address
+	message['Subject'] = 'SHOPTIK TOKEN'   #The subject line
+	#The body and the attachments for the mail
+	message.attach(MIMEText(mail_content, 'plain'))
+	filename = path+'/'+ imageName
+	attachment = open(filename, "rb") 
+	p = MIMEBase('application', 'octet-stream') 
+	p.set_payload((attachment).read()) 
+	encoders.encode_base64(p) 
+	p.add_header('Content-Disposition', "attachment; filename= %s" % filename) 
+	message.attach(p) 
+	#Create SMTP session for sending the mail
+	session = smtplib.SMTP('smtp.gmail.com', 587) #use gmail with port
+	session.starttls() #enable security
+	session.login(sender_address, sender_pass) #login with mail_id and password
+	text = message.as_string()
+	session.sendmail(sender_address, receiver_address, text)
+	session.quit()
+	print("MAILED SUCCESS")
+	return True
 
 #Track API
 # Req JSON : 
@@ -154,21 +184,21 @@ def track_users():
 
 @app.route('/api/user/register',methods = ['POST'])
 def user_register():
-		info =request.json
-		name = info['name']
-		email = info['email']
-		address = info['address']
-		phone = info['phone']
-		pwd = info['pwd']
-		id_user = getUserId()
-        if id_user is None:
-            return jsonify({'message': 'No more nodes can be added to the chain', 'success': False})
+	info =request.json
+	name = info['name']
+	email = info['email']
+	address = info['address']
+	phone = info['phone']
+	pwd = info['pwd']
+	id_user = getUserId()
+	if id_user is None:
+		return jsonify({'message': 'No more nodes can be added to the chain', 'success': False})
 
-		if data.check_user_name(email) == True:
-				return jsonify({'message':'Email already exists' , 'success':False})
+	if data.check_user_name(email) == True:
+			return jsonify({'message':'Email already exists' , 'success':False})
 
-		data.add_user(id_user,name,email,address,phone,pwd)
-		return jsonify({'success':True , 'message':'Customer successfully registered'  })
+	data.add_user(id_user,name,email,address,phone,pwd)
+	return jsonify({'success':True , 'message':'Customer successfully registered'  })
 
 
 # Register Shop API
@@ -283,6 +313,12 @@ def get_products_of_shop(shopId):
 		print(response)
 		return jsonify(response)
 
+#GET DETAILS OF SHOP
+@app.route('/api/shop/details/<shopId>')
+def get_shop_details(shopId):
+    shopDetails = data.get_details_of_shop(shopId)
+    response = {"shopId":shopId,"name":shopDetails[0],"email":shopDetails[1],"hold_limit":shopDetails[4],"shop_address":shopDetails[2],"image":shopDetails[5]}
+    return jsonify(response)
 
 #FOR BOTH <USER AND SHOP>
 #API FOR SLOTS NUMBER api/shop/tokens/booked/2020-07-12/ChIJKRiIHAdkUjoRTKyswz_T8Mk
