@@ -27,6 +27,8 @@ class DB:
 
     def add_user(self,id,name,email,address,phone,pwd):
             self.db_connect()
+            print(phone)
+            print(type(phone))
             query = "INSERT INTO customer (id,name,email,address,phone,password) VALUES('{0}','{1}','{2}','{3}',{4},'{5}')".format(id,name,email,address,phone,pwd)
             self.cur.execute(query)
             self.conn.commit()
@@ -59,9 +61,9 @@ class DB:
         else:
             return True
 
-    def add_shop(self,id,name,lat,lon,email,address,phone,pwd,hold):
+    def add_shop(self, id, name, lat, lon, email, address, phone, pwd, hold, image_url):
             self.db_connect()
-            query = "INSERT INTO shop (id,name,lat,lng,email,address,phone,password,hold_limit) VALUES('{0}','{1}',{2},{3},'{4}','{5}',{6},'{7}',{8})".format(id,name,lat,lon,email,address,phone,pwd,hold)
+            query = "INSERT INTO shop (id,name,lat,lng,email,address,phone,password,hold_limit, image_url) VALUES('{0}','{1}',{2},{3},'{4}','{5}',{6},'{7}',{8}, '{9}')".format(id,name,lat,lon,email,address,phone,pwd,hold, image_url)
             self.cur.execute(query)
             self.conn.commit()
     
@@ -146,7 +148,7 @@ class DB:
     
     def get_products_of_shop(self,shopId):
         self.db_connect()
-        query="SELECT product from stock where shop_id= '{0}'".format(shopId)
+        query="SELECT product, product_id from stock where shop_id= '{0}'".format(shopId)
         self.cur.execute(query)
         response=self.cur.fetchall()
         return response

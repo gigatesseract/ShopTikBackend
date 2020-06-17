@@ -35,23 +35,29 @@ def initialise_all_nodes(config_dict, alloted_ids):
     ShopContract = w3.eth.contract(abi=js['abi'], bytecode=bytecode)
     tx_hash = ShopContract.constructor().transact()
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
-    print("contact deployed. This is the details----\n")
-    pp(tx_receipt)
+    print("contacts deployed\n")
     for id in nodes['alloted_ids']:
         nodes['addresses'][pub_priv_keys[id]['address']] = Node(pub_priv_keys[id],abi_path,tx_receipt.contractAddress,network_id, config_dict['DEFAULT']['GANACHE_URL'], True)
 
     for address in pub_priv_keys:
         if address not in nodes['alloted_ids']:
             nodes['free_ids'].append(address)
-    return nodes
+    return nodes, tx_receipt
 
 
-def get_unique_id(nodes):
+def get_unique_id(nodes, config_dict, tx_receipt):
+    from .node import Node
+    keys_file_path = config_dict['DEFAULT']['ACCOUNT_KEYS_PATH']
+    abi_path = config_dict['DEFAULT']['ABI_FILE_PATH']
+    network_id = config_dict['DEFAULT']['NETWORK_ID']
+    keys_json = get_keys_json(keys_file_path)
+    pub_priv_keys = get_pub_priv_keys(keys_json)
     if len(nodes['free_ids']) == 0:
         return (None, nodes)
     else:
         last = nodes['free_ids'].pop()
         nodes['alloted_ids'].append(last)
+        nodes[last] = Node(pub_priv_keys[last], abi_path, tx_receipt.contractAddress, network_id, config_dict['DEFAULT']['GANACHE_URL'], True)
         return (last, nodes)
 
 

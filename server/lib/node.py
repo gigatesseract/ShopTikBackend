@@ -26,7 +26,7 @@ class Node:
 
     def add_user_data(self, user_dict):
         receipt = self.contract.functions.addUser(
-            self.address, user_dict['customer_id'], user_dict['slot_begin'], user_dict['slot_end']
+            self.address, user_dict['customer_id'], user_dict['slot_begin']
         ).transact({"from": self.address})
         tx_receipt = self.w3.eth.waitForTransactionReceipt(receipt)
         return tx_receipt

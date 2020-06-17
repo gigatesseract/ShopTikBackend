@@ -29,76 +29,32 @@ path = os.getcwd()
 config_dict = u.read_config(CONFIG_FILE)
 data = DB(config_dict['DB'])
 alloted_ids = data.get_all_ids()
-nodes = u.initialise_all_nodes(config_dict, alloted_ids)
+nodes, tx_receipt = u.initialise_all_nodes(config_dict, alloted_ids)
 print("---ALL NODES INITIALISED---")
 
 
-
-#TODO: Add all the account addresses for shopkeepers, customers and admin.
-#TODO: nodes['shop_keepers'] -> each key is account address
-#TODO: nodes['admin'] -> each key is account address
-#TODO: nodes['customers'] -> each key is accoutn address
-
-
-
-@app.route('/api/transact')
-def add_user_data():
-	'''Given user_id, shopkeeper_id, slot time information, add
-			details to the chain.
-	'''
-	#TODO : GET account address from backend, for given user and shop
-	user_dict = {
-		'customer_id':pub_priv_keys[2]['address'],
-		'slot_begin': int(time.time()),
-		'slot_end': int(time.time())
-	}
-
-	user_dict_2 = {
-		'customer_id': pub_priv_keys[3]['address'],
-		'slot_begin': int(time.time()),
-		'slot_end': int(time.time())
-	}
-	
-
-	#TODO: SHOPKEEPER_ID holds the contract address of user sending request to add. (MUST BE SHOPKEEPER)
-	shopkeeper_id_1 = pub_priv_keys[0]['address']
-	shopkeeper_id_2 = pub_priv_keys[1]['address']
-	print(nodes)
-	if shopkeeper_id_1 in nodes['shop_keepers']:
-		tx_receipt = nodes['shop_keepers'][shopkeeper_id_1].add_user_data(user_dict)
-
-	if shopkeeper_id_2 in nodes['shop_keepers']:
-		tx_receipt = nodes['shop_keepers'][shopkeeper_id_2].add_user_data(user_dict_2)
-
-		print("Data added, \n")
-		return jsonify(200)
-	else:
-		print("PERSON NOT SHOPKEEPER. ABORTING....")
-		return jsonify(400)
-
-
+# No cacheing at all for API endpoints.
+@app.after_request
+def add_header(response):
+    # response.cache_control.no_store = True
+    if 'Cache-Control' not in response.headers:
+        response.headers['Cache-Control'] = 'no-store'
+    return response
 
 #TEST SERVER
 @app.route('/')
 def apiCall():
 	return jsonify({'success':True , 'message':'BASE URL'  })
 
-
-#HELPER FUNCTIONS
-#blockchain call for user Address
 def getUserId():
-	#TODO: ALLOT UNIQUE ID
-		#insert web3 here
 		global nodes
-		(ele, nodes) = u.get_unique_id(nodes)
+		(ele, nodes) = u.get_unique_id(nodes, config_dict, tx_receipt)
 		return ele
-#blockchain call for shop Address
+
 def getShopId():
-	#TODO: ALLOT UNIQUE ID
 	global nodes
-	(ele, nodes) = u.get_unique_id(nodes)
+	(ele, nodes) = u.get_unique_id(nodes, config_dict, tx_receipt)
 	return ele
-	#insert web3 here
 	 
 #generate QR CODE IMAGE
 def generateQRImage(qrCode,mailId):
@@ -159,7 +115,7 @@ def track_users():
 	info =request.json
 	admin_id = info['admin_id']
 	customer_id = info['customer_id']
-	[ids, shop_ids, slot_begins] = nodes[admin_id].get_all_user_data(customer_id)
+	[ids, shop_ids, slot_begins] = nodes['addresses'][admin_id].get_all_user_data(customer_id)
 	track_info = []
 	for i in range(len(ids)):
 		if shop_ids[i]!='':
@@ -190,12 +146,15 @@ def user_register():
 	address = info['address']
 	phone = info['phone']
 	pwd = info['pwd']
-	id_user = getUserId()
-	if id_user is None:
-		return jsonify({'message': 'No more nodes can be added to the chain', 'success': False})
+	
 
 	if data.check_user_name(email) == True:
-			return jsonify({'message':'Email already exists' , 'success':False})
+			return jsonify({'message':'Email already exists' , 'success':False})		
+	
+	id_user = getUserId()
+
+	if id_user is None:
+		return jsonify({'message': 'No more nodes can be added to the chain', 'success': False})
 
 	data.add_user(id_user,name,email,address,phone,pwd)
 	return jsonify({'success':True , 'message':'Customer successfully registered'  })
@@ -224,12 +183,18 @@ def shop_register():
 	address = info['address']
 	phone = info['phone']
 	pwd = info['pwd']
-	id_shop = getShopId()
+	image_url = info['image_url']
+	
 	hold = info['hold']
 	if data.check_shop_name(email) == True:
 			return jsonify({'message':'Email already exists' , 'success':False})
+		
+	id_shop = getShopId()
 
-	data.add_shop(id_shop,name,lat,lon,email,address,phone,pwd,hold)
+	if id_shop is None:
+		return jsonify({'message': 'No more nodes can be added to the chain', 'success': False})
+
+	data.add_shop(id_shop,name,lat,lon,email,address,phone,pwd,hold, image_url)
 	return jsonify({'success':True , 'message':'Shop successfully registered' })
 
 #LOGIN API
@@ -372,9 +337,25 @@ def get_user_booked_tokens(userId):
 
 @app.route('/api/tokens/verify/<tokenId>')
 def verify_token(tokenId):
+	print(nodes)
 	response = data.get_token_verified(tokenId)
 	if response == None:
 		return jsonify({"allow":False,"message":"Not a valid Token"})
 	else:
+		shop_id=response[1]
+		print("\n\n\n\n\n")
+		print(shop_id)
+		print(type(shop_id))
+		cust_id=response[0]
+		user_dict = {
+			"customer_id": cust_id,
+			"slot_begin": int(time.time())
+		}
+		if shop_id in nodes:
+			print("hello")
+		tx_receipt = nodes['addresses'][shop_id].add_user_data(user_dict)
+		print("added to chain")
 		print(response)
+		return jsonify({"allow": True, "message": "Verified!"})
+
 		#insert block adding code here

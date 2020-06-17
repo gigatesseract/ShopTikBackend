@@ -1,7 +1,7 @@
 
 DEFAULT:
   GANACHE_URL : 'http://127.0.0.1:8545'
-  NETWORK_ID : 1592293978137
+  NETWORK_ID : 1591520511878
   ABI_FILE_PATH : './blockchain/build/contracts'
   ACCOUNT_KEYS_PATH : './blockchain/keys'
   TOTAL_NODES : 10
