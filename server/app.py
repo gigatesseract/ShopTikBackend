@@ -83,8 +83,9 @@ def generateQRImage(qrCode,mailId):
 	p.add_header('Content-Disposition', "attachment; filename= %s" % filename) 
 	message.attach(p) 
 	#Create SMTP session for sending the mail
-	session = smtplib.SMTP('smtp.gmail.com', 587) #use gmail with port
-	session.starttls() #enable security
+	session = smtplib.SMTP_SSL('smtp.gmail.com') #use gmail with port
+	#session.starttls() #enable security
+	session.set_debuglevel(1)
 	session.login(sender_address, sender_pass) #login with mail_id and password
 	text = message.as_string()
 	session.sendmail(sender_address, receiver_address, text)
