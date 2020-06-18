@@ -398,12 +398,9 @@ def verify_token(tokenId):
         return jsonify({"allow": False, "message": "Not a valid Token"})
     else:
         shop_id = response[1]
-        # print("\n\n\n\n\n")
-        # print(shop_id)
-        # print(type(shop_id))
         cust_id = response[0]
         user_dict = {"customer_id": cust_id, "slot_begin": int(time.time())}
-        if shop_id in nodes:
+        if shop_id in nodes['addresses']:
             # print("hello")
             tx_receipt = nodes["addresses"][shop_id].add_user_data(user_dict)
             print("added to chain")
