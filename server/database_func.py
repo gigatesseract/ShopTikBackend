@@ -192,6 +192,17 @@ class DB:
             print("RES",responses)
         return responses
 
+    def get_all_customer_names(self):
+        self.db_connect()
+        query = "select  `id`, `name`, `email` from customer where 1"
+        self.cur.execute(query)
+        unique_ids = self.cur.fetchall()
+        # query = "select `id` from admin where 1"
+        # self.cur.execute(query)
+        # unique_ids += self.cur.fetchall()
+        return unique_ids
+
+
     def get_token_verified(self,tokenId):
         self.db_connect()
         query= "select customer_id,shop_id from transactions where QR ='{0}'".format(tokenId)
