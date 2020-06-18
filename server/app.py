@@ -392,43 +392,19 @@ def get_user_booked_tokens(userId):
 
 @app.route("/api/tokens/verify/<tokenId>")
 def verify_token(tokenId):
-<<<<<<< HEAD
-	print(nodes)
-	response = data.get_token_verified(tokenId)
-	if response == None:
-		return jsonify({"allow":False,"message":"Not a valid Token"})
-	else:
-		shop_id=response[1]
-		print("\n\n\n\n\n")
-		print(shop_id)
-		print(type(shop_id))
-		cust_id=response[0]
-		user_dict = {
-			"customer_id": cust_id,
-			"slot_begin": int(time.time())
-		}
-		if shop_id in nodes:
-			print("hello")
-		tx_receipt = nodes['addresses'][shop_id].add_user_data(user_dict)
-		print("added to chain")
-		print(response)
-		return jsonify({"allow": True, "message": "Verified!"})
-
-		#insert block adding code here
-=======
-    print(nodes)
+    # print(nodes)
     response = data.get_token_verified(tokenId)
     if response == None:
         return jsonify({"allow": False, "message": "Not a valid Token"})
     else:
         shop_id = response[1]
-        print("\n\n\n\n\n")
-        print(shop_id)
-        print(type(shop_id))
+        # print("\n\n\n\n\n")
+        # print(shop_id)
+        # print(type(shop_id))
         cust_id = response[0]
         user_dict = {"customer_id": cust_id, "slot_begin": int(time.time())}
         if shop_id in nodes:
-            print("hello")
+            # print("hello")
         tx_receipt = nodes["addresses"][shop_id].add_user_data(user_dict)
         print("added to chain")
         print(response)
@@ -436,4 +412,3 @@ def verify_token(tokenId):
 
         # insert block adding code here
 
->>>>>>> fb332c4b524f5864bb04151a861d4947321539cb
