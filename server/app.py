@@ -140,10 +140,11 @@ def track_users():
     track_info = []
     for i in range(len(ids)):
         if shop_ids[i] != "":
+            shop_name = data.get_shop_name(shop_ids[i])[0]
             track_info.append(
                 {
                     "id": ids[i],
-                    "shop_id": shop_ids[i],
+                    "shop_id": shop_name,
                     "slot_begin": datetime.datetime.fromtimestamp(
                         slot_begins[i]
                     ).isoformat(),

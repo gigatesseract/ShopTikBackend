@@ -197,10 +197,14 @@ class DB:
         query = "select  `id`, `name`, `email` from customer where 1"
         self.cur.execute(query)
         unique_ids = self.cur.fetchall()
-        # query = "select `id` from admin where 1"
-        # self.cur.execute(query)
-        # unique_ids += self.cur.fetchall()
         return unique_ids
+
+    def get_shop_name(self, id):
+        self.db_connect()
+        query = "select name from `shop` where `id` = '{0}'".format(id)
+        self.cur.execute(query)
+        response = self.cur.fetchall()
+        return response[0]
 
 
     def get_token_verified(self,tokenId):
