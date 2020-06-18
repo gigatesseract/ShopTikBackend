@@ -125,7 +125,7 @@ def get_customer_names():
 			"email": name[2]
         })
     return jsonify({
-		'success': true, 
+		'success': True, 
 		'data':return_names})
 
 
