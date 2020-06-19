@@ -177,12 +177,7 @@ def user_register():
     if data.check_user_name(email) == True:
         return jsonify({"message": "Email already exists", "success": False})
 
-    id_user = getUserId()
-
-    if id_user is None:
-        return jsonify(
-            {"message": "No more nodes can be added to the chain", "success": False}
-        )
+    id_user = email
 
     data.add_user(id_user, name, email, address, phone, pwd)
     return jsonify({"success": True, "message": "Customer successfully registered"})
