@@ -115,7 +115,7 @@ class DB:
     #date  ' YYYY-MM-DD hh:mm:ss ' 
     def slot_crowding_for_display(self,date,shop_id):
         self.db_connect()
-        slots = ["8:00","08:45","09:30","10:15","11:00","11:45","12:30","01:15","02:00","02:45"]
+        slots = ["8:00","08:45","09:30","10:15","11:00","11:45","12:30","13:15","14:00","14:45"]
         response=[]
         for i in slots:
             slot = date + " " + i +":00"
