@@ -207,13 +207,38 @@ class DB:
         return response[0]
 
 
+    def add_carrier(self, id):
+        self.db_connect()
+        query = "INSERT INTO carrier (customer_id) VALUES ('{0}')".format(id)
+        self.cur.execute(query)
+        self.conn.commit()
+
+    def get_all_carriers(self):
+        self.db_connect()
+        query = "select c.id, name, address, phone from carrier ca, customer c where ca.customer_id = c.id"
+        self.cur.execute(query)
+        response = self.cur.fetchall()
+        return response
+
     def get_token_verified(self,tokenId):
         self.db_connect()
-        query= "select customer_id,shop_id from transactions where QR ='{0}'".format(tokenId)
+        query= "select customer_id,shop_id, slot from transactions where QR ='{0}'".format(tokenId)
         self.cur.execute(query)
         response = self.cur.fetchall()
         if len(response) > 0 :
             return response[0]
         else:
             return None
+
+    def get_tracked_customers(self, shop_id, slot_string):
+        self.db_connect()
+        query = "SELECT  name, address, phone, shop_id, customer.id from customer, transactions where customer.id = transactions.customer_id and transactions.shop_id = '{0}' and transactions.slot = '{1}'".format(shop_id, slot_string)
+        self.cur.execute(query)
+        response = self.cur.fetchall()
+        return response
         
+    def get_existing_transactions(self):
+        self.db_connect()
+        query = "SELECT `customer_id`, `shop_id`, `slot` from transactions";
+        self.cur.execute(query)
+        return self.cur.fetchall()

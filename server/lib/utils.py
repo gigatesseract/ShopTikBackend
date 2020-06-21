@@ -3,6 +3,7 @@ import yaml
 from pprint import pprint as pp
 from web3 import Web3
 import sys
+from datetime import datetime
 
 
 def get_network_id(build_json_path):
@@ -45,6 +46,8 @@ def initialise_all_nodes(config_dict, alloted_ids):
     return nodes, tx_receipt
 
 
+
+
 def get_unique_id(nodes, config_dict, tx_receipt):
     from .node import Node
     keys_file_path = config_dict['DEFAULT']['ACCOUNT_KEYS_PATH']
@@ -65,6 +68,18 @@ def read_config(path):
     with open(path) as o:
         return yaml.load(o)
 
+
+def convert_uint_to_mysql(epoch):
+    now = datetime.fromtimestamp(epoch)
+    return now.strftime('%Y-%m-%d %H:%M:%S')
+
+    
+
+
+
+def convert_mysql_to_uint(mysql_string):
+    created_date = datetime.strptime(mysql_string, '%Y-%m-%d %H:%M:%S')
+    return int(round(created_date.timestamp()))
 
 def get_keys_json(path):
     with open(path) as keys_json:

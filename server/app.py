@@ -3,6 +3,7 @@ from flask import Flask, jsonify, send_from_directory, request
 from flask_cors import CORS
 from pprint import pprint as pp
 import time
+import calendar
 import datetime
 import smtplib
 import pyqrcode
@@ -25,11 +26,29 @@ CONFIG_FILE = "config.yaml"
 app = Flask(__name__, static_folder="../build")
 CORS(app)
 # alloted_ids = []
+
+
+def initialise_chain_data(nodes):
+    transactions = data.get_existing_transactions()
+    for transaction in transactions:
+        cust_id = transaction[0]
+        slot = str(transaction[2])
+        shop_id = transaction[1]
+
+        slot_ = u.convert_mysql_to_uint(slot)
+        print(slot, slot_)
+        user_dict = {"customer_id": cust_id, "slot_begin": slot_}
+        nodes["addresses"][shop_id].add_user_data(user_dict)
+
+    print("Chain initialised with pre existing data")
+
+
 path = os.getcwd()
 config_dict = u.read_config(CONFIG_FILE)
 data = DB(config_dict["DB"])
 alloted_ids = data.get_all_ids()
 nodes, tx_receipt = u.initialise_all_nodes(config_dict, alloted_ids)
+initialise_chain_data(nodes)
 print("---ALL NODES INITIALISED---")
 
 
@@ -55,49 +74,51 @@ def getUserId():
 
 
 def getShopId():
-	global nodes
-	(ele, nodes) = u.get_unique_id(nodes, config_dict, tx_receipt)
-	return ele
-	 
-#generate QR CODE IMAGE
-def generateQRImage(qrCode,mailId):
-	path = os.getcwd()
-	print(qrCode,path)
-	url = pyqrcode.create(qrCode)
-	imageName = qrCode+'.png'
-	url.png(imageName,scale=8)
-	mail_content = '''Hey ,This is Your token for shop entry.'''
-	#The mail addresses and password
-	sender_address = 'shoptikmail@gmail.com'
-	sender_pass = 'shoptikpw'
-	receiver_address = mailId
-	#Setup the MIME
-	message = MIMEMultipart()
-	message['From'] = sender_address
-	message['To'] = receiver_address
-	message['Subject'] = 'SHOPTIK TOKEN'   #The subject line
-	#The body and the attachments for the mail
-	message.attach(MIMEText(mail_content, 'plain'))
-	filename = path+'/'+ imageName
-	attachment = open(filename, "rb") 
-	p = MIMEBase('application', 'octet-stream') 
-	p.set_payload((attachment).read()) 
-	encoders.encode_base64(p) 
-	p.add_header('Content-Disposition', "attachment; filename= %s" % filename) 
-	message.attach(p) 
-	#Create SMTP session for sending the mail
-	session = smtplib.SMTP_SSL('smtp.gmail.com') #use gmail with port
-	#session.starttls() #enable security
-	#session.set_debuglevel(1)
-	session.login(sender_address, sender_pass) #login with mail_id and password
-	text = message.as_string()
-	session.sendmail(sender_address, receiver_address, text)
-	session.quit()
-	print("MAILED SUCCESS")
-	return True
+    global nodes
+    (ele, nodes) = u.get_unique_id(nodes, config_dict, tx_receipt)
+    return ele
 
-#Track API
-# Req JSON : 
+
+# generate QR CODE IMAGE
+def generateQRImage(qrCode, mailId):
+    path = os.getcwd()
+    print(qrCode, path)
+    url = pyqrcode.create(qrCode)
+    imageName = qrCode + ".png"
+    url.png(imageName, scale=8)
+    mail_content = """Hey ,This is Your token for shop entry."""
+    # The mail addresses and password
+    sender_address = "shoptikmail@gmail.com"
+    sender_pass = "shoptikpw"
+    receiver_address = mailId
+    # Setup the MIME
+    message = MIMEMultipart()
+    message["From"] = sender_address
+    message["To"] = receiver_address
+    message["Subject"] = "SHOPTIK TOKEN"  # The subject line
+    # The body and the attachments for the mail
+    message.attach(MIMEText(mail_content, "plain"))
+    filename = path + "/" + imageName
+    attachment = open(filename, "rb")
+    p = MIMEBase("application", "octet-stream")
+    p.set_payload((attachment).read())
+    encoders.encode_base64(p)
+    p.add_header("Content-Disposition", "attachment; filename= %s" % filename)
+    message.attach(p)
+    # Create SMTP session for sending the mail
+    session = smtplib.SMTP_SSL("smtp.gmail.com")  # use gmail with port
+    # session.starttls() #enable security
+    # session.set_debuglevel(1)
+    session.login(sender_address, sender_pass)  # login with mail_id and password
+    text = message.as_string()
+    session.sendmail(sender_address, receiver_address, text)
+    session.quit()
+    print("MAILED SUCCESS")
+    return True
+
+
+# Track API
+# Req JSON :
 # {
 #   "customer_id": "cus234234........"
 #   "admin_id": "0xBFe892..."
@@ -119,14 +140,8 @@ def get_customer_names():
     return_names = []
     cust_names = data.get_all_customer_names()
     for name in cust_names:
-        return_names.append({
-            "name": name[1],
-            "id": name[0],
-			"email": name[2]
-        })
-    return jsonify({
-		'success': True, 
-		'data':return_names})
+        return_names.append({"name": name[1], "id": name[0], "email": name[2]})
+    return jsonify(return_names)
 
 
 @app.route("/api/track", methods=["POST"])
@@ -138,20 +153,39 @@ def track_users():
         customer_id
     )
     track_info = []
+    global_cust = []
     for i in range(len(ids)):
         if shop_ids[i] != "":
+
             shop_name = data.get_shop_name(shop_ids[i])[0]
+            timestamp = u.convert_uint_to_mysql(slot_begins[i])
+            print(timestamp)
+
+            global_cust_tuple = data.get_tracked_customers(
+                shop_ids[i], u.convert_uint_to_mysql(slot_begins[i])
+            )
+            print(u.convert_uint_to_mysql(slot_begins[i]))
+
             track_info.append(
                 {
                     "id": ids[i],
                     "shop_id": shop_name,
-                    "slot_begin": datetime.datetime.fromtimestamp(
-                        slot_begins[i]
-                    ).isoformat(),
+                    "slot_begin": u.convert_uint_to_mysql(slot_begins[i]),
                 }
             )
-    pp(track_info)
-    return jsonify(track_info)
+            for cust_tuple in global_cust_tuple:
+                print(cust_tuple)
+                global_cust.append(
+                    {
+                        "id": cust_tuple[4],
+                        "name": cust_tuple[0],
+                        "address": cust_tuple[1],
+                        "phone": cust_tuple[2],
+                        "slot": u.convert_uint_to_mysql(slot_begins[i]),
+                        "shop_id": shop_name,
+                    }
+                )
+    return jsonify({"track_info": track_info, "global_cust": global_cust})
 
 
 # Register User API
@@ -386,6 +420,31 @@ def get_user_booked_tokens(userId):
     return jsonify(response)
 
 
+@app.route("/api/carrier/names")
+def get_carriers():
+    cust_objects = []
+    carrier_ids = data.get_all_carriers()
+    for details_tuple in carrier_ids:
+        cust_obj = {}
+        (id, name, address, phone) = details_tuple
+        cust_obj["id"] = id
+        cust_obj["name"] = name
+        cust_obj["address"] = address
+        cust_obj["phone"] = phone
+        cust_objects.append(cust_obj)
+
+    return jsonify(cust_objects)
+
+
+@app.route("/api/carrier/add", methods=["POST"])
+def add_carrier():
+    info = request.json
+    print(info)
+    id = info["id"]
+    data.add_carrier(id)
+    return jsonify({"success": True, "message": "Carrier successfully added"})
+
+
 @app.route("/api/tokens/verify/<tokenId>")
 def verify_token(tokenId):
     # print(nodes)
@@ -395,15 +454,15 @@ def verify_token(tokenId):
     else:
         shop_id = response[1]
         cust_id = response[0]
-        user_dict = {"customer_id": cust_id, "slot_begin": int(time.time())}
-        if shop_id in nodes['addresses']:
+        slot = str(response[2])
+        slot = u.convert_mysql_to_uint(slot)
+        user_dict = {"customer_id": cust_id, "slot_begin": slot}
+        if shop_id in nodes["addresses"]:
             # print("hello")
             tx_receipt = nodes["addresses"][shop_id].add_user_data(user_dict)
             print("added to chain")
             print(response)
             return jsonify({"allow": True, "message": "Verified!"})
         else:
-            return jsonify({'allow': False, 'message': "INvalid shop ID"})
-
-        # insert block adding code here
+            return jsonify({"allow": False, "message": "Invalid shop ID"})
 
