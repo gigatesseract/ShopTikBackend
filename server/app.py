@@ -16,7 +16,7 @@ from database_func import DB
 
 app = Flask(__name__)
 
-import lib.utils as u
+from lib import utils as u
 
 CONFIG_FILE = "config.yaml"
 
@@ -406,4 +406,3 @@ def verify_token(tokenId):
             return jsonify({'allow': False, 'message': "INvalid shop ID"})
 
         # insert block adding code here
-
