@@ -59,8 +59,8 @@ def get_unique_id(nodes, config_dict, tx_receipt):
         return (None, nodes)
     else:
         last = nodes['free_ids'].pop()
-        nodes['addresses']['alloted_ids'].append(last)
-        nodes[last] = Node(pub_priv_keys[last], abi_path, tx_receipt.contractAddress, network_id, config_dict['DEFAULT']['GANACHE_URL'], True)
+        nodes['alloted_ids'].append(last)
+        nodes['addresses'][last] = Node(pub_priv_keys[last], abi_path, tx_receipt.contractAddress, network_id, config_dict['DEFAULT']['GANACHE_URL'], True)
         return (last, nodes)
 
 
