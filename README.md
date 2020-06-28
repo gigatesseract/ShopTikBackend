@@ -1,4 +1,7 @@
-## Setting up the app :rocket:  
+# ShopTik Backend
+The backend for the ShopTik project. For the main application (hackathon submission), refer [here](https://github.com/jayvishaalj/SHOPTIK)
+
+## Setting up the backend :rocket:  
 
 cd ShopTikBackend
 `npm install --no-optional`    
@@ -20,4 +23,4 @@ After installing the dependencies, inside `ShopTikBackend` folder, run
 
 Change directory into `server` and run `flask run`
 Make sure that the environment is activated. If not, run `source env/bin/activate`
-For documentation on the routes, refer [this Postman Docs](https://www.getpostman.com/collections/dad0fa04781c17fa4fb7)
+For documentation on the routes, refer [the Postman Docs](https://www.getpostman.com/collections/dad0fa04781c17fa4fb7)
