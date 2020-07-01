@@ -4,7 +4,8 @@ from pprint import pprint as pp
 from web3 import Web3
 import sys
 from datetime import datetime
-
+from web3.middleware import geth_poa_middleware
+from eth_account import Account
 
 def get_network_id(build_json_path):
     build_json = get_keys_json(build_json_path)
@@ -13,40 +14,18 @@ def get_network_id(build_json_path):
     
 
 
-def initialise_all_nodes(config_dict, alloted_ids):
+def initialise_node(config_dict):
     from .node import Node
-    nodes = {
-        "alloted_ids": [],
-        "free_ids": [],
-        "addresses": {}
-    }
-    for id in alloted_ids:
-        actual_id = id[0]
-        nodes['alloted_ids'].append(actual_id)
-    
-    keys_file_path = config_dict['DEFAULT']['ACCOUNT_KEYS_PATH']
     abi_path = config_dict['DEFAULT']['ABI_FILE_PATH']
     network_id = config_dict['DEFAULT']['NETWORK_ID']
-    keys_json = get_keys_json(keys_file_path)
-    pub_priv_keys = get_pub_priv_keys(keys_json)
+    # keys_json = get_keys_json(keys_file_path)
     w3 = Web3(Web3.HTTPProvider(config_dict['DEFAULT']['GANACHE_URL']))
-    w3.eth.defaultAccount = w3.eth.accounts[0]
+    w3.middleware_onion.inject(geth_poa_middleware, layer=0)
     js = Node.load_abi(abi_path)
     bytecode = js['bytecode']
     ShopContract = w3.eth.contract(abi=js['abi'], bytecode=bytecode)
-    tx_hash = ShopContract.constructor().transact()
-    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
-    print("contacts deployed\n")
-    for id in nodes['alloted_ids']:
-        nodes['addresses'][pub_priv_keys[id]['address']] = Node(pub_priv_keys[id],abi_path,tx_receipt.contractAddress,network_id, config_dict['DEFAULT']['GANACHE_URL'], True)
-
-    for address in pub_priv_keys:
-        if address not in nodes['alloted_ids']:
-            nodes['free_ids'].append(address)
-    return nodes, tx_receipt
-
-
-
+    transacter_node = Node(w3, config_dict['BLOCKCHAIN']['ADDRESS'], config_dict['BLOCKCHAIN']['PRIVATE_KEY'],abi_path, config_dict['BLOCKCHAIN']['CONTRACT_ADDRESS'],network_id, config_dict['DEFAULT']['GANACHE_URL'])
+    return transacter_node
 
 def get_unique_id(nodes, config_dict, tx_receipt):
     from .node import Node

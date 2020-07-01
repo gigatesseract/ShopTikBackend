@@ -232,9 +232,12 @@ class DB:
 
     def get_tracked_customers(self, shop_id, slot_string):
         self.db_connect()
+        print("shop_id::: ", shop_id)
+        print("slot_sring::: ", slot_string)
         query = "SELECT  name, address, phone, shop_id, customer.id from customer, transactions where customer.id = transactions.customer_id and transactions.shop_id = '{0}' and transactions.slot = '{1}'".format(shop_id, slot_string)
         self.cur.execute(query)
         response = self.cur.fetchall()
+        print("this is response::: ", response)
         return response
         
     def get_existing_transactions(self):

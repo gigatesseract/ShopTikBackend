@@ -28,7 +28,7 @@ CORS(app)
 # alloted_ids = []
 
 
-def initialise_chain_data(nodes):
+def initialise_chain_data(transacter_node):
     transactions = data.get_existing_transactions()
     for transaction in transactions:
         cust_id = transaction[0]
@@ -37,8 +37,8 @@ def initialise_chain_data(nodes):
 
         slot_ = u.convert_mysql_to_uint(slot)
         print(slot, slot_)
-        user_dict = {"customer_id": cust_id, "slot_begin": slot_}
-        nodes["addresses"][shop_id].add_user_data(user_dict)
+        user_dict = {"customer_id": cust_id, "slot_begin": slot_, "shop_id": shop_id}
+        transacter_node.add_user_data(user_dict)
 
     print("Chain initialised with pre existing data")
 
@@ -46,9 +46,9 @@ def initialise_chain_data(nodes):
 path = os.getcwd()
 config_dict = u.read_config(CONFIG_FILE)
 data = DB(config_dict["DB"])
-alloted_ids = data.get_all_ids()
-nodes, tx_receipt = u.initialise_all_nodes(config_dict, alloted_ids)
-initialise_chain_data(nodes)
+# alloted_ids = data.get_all_ids()
+transacter_node = u.initialise_node(config_dict)
+# initialise_chain_data(transacter_node)
 print("---ALL NODES INITIALISED---")
 
 
@@ -149,14 +149,14 @@ def track_users():
     info = request.json
     admin_id = info["admin_id"]
     customer_id = info["customer_id"]
-    [ids, shop_ids, slot_begins] = nodes["addresses"][admin_id].get_all_user_data(
+    [ids, shop_ids, slot_begins] = transacter_node.get_all_user_data(
         customer_id
     )
     track_info = []
     global_cust = []
     for i in range(len(ids)):
         if shop_ids[i] != "":
-
+            print("this is shop_id::", shop_ids[i])
             shop_name = data.get_shop_name(shop_ids[i])[0]
             timestamp = u.convert_uint_to_mysql(slot_begins[i])
             print(timestamp)
@@ -246,7 +246,7 @@ def shop_register():
     if data.check_shop_name(email) == True:
         return jsonify({"message": "Email already exists", "success": False})
 
-    id_shop = getShopId()
+    id_shop = email
 
     if id_shop is None:
         return jsonify(
@@ -456,13 +456,7 @@ def verify_token(tokenId):
         cust_id = response[0]
         slot = str(response[2])
         slot = u.convert_mysql_to_uint(slot)
-        user_dict = {"customer_id": cust_id, "slot_begin": slot}
-        if shop_id in nodes["addresses"]:
-            # print("hello")
-            tx_receipt = nodes["addresses"][shop_id].add_user_data(user_dict)
-            print("added to chain")
-            print(response)
-            return jsonify({"allow": True, "message": "Verified!"})
-        else:
-            return jsonify({"allow": False, "message": "Invalid shop ID"})
-
+        user_dict = {"customer_id": cust_id, "slot_begin": slot, "shop_id": shop_id}
+        tx_receipt = transacter_node.add_user_data(user_dict)
+        print("added to chain")
+        return jsonify({"allow": True, "message": "Verified!", "Transaction receipt": tx_receipt })
